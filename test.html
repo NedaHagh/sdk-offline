@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8"/>
+    <title>Media Player</title>
+    <script type="text/javascript" src="../dist/offline-player-bundle.js"></script>
+</head>
+
+<body>
+<button id="bbbb">Load Video</button>
+<button id="cccc">Stop Video</button>
+<button id="pause">pause</button>
+<button id="play">play</button>
+
+<div id="root">
+</div>
+
+<script>
+    const consoleLogging = true;
+    var errorMessage = "";
+    var status = "";
+    var SDK = new window.POD.OfflinePlayerSDK({
+        containerId: "root",
+        env: "main",
+        logging: {
+            info: true,
+            debug: true,
+            error: true
+        },
+        styling: {
+            container: {
+                width: 300,
+                height: 300
+            }
+        }
+    });
+
+    document.getElementById("bbbb").addEventListener("click", function (evt) {
+        evt.preventDefault();
+        SDK.playMedia({
+            hash: "DBPPGRD3PUPV4MNL",
+            quality: 240,
+            token: "ed24e37c7ee84313acf2805a80122f94",
+        });
+    });
+    document.getElementById("pause").addEventListener("click", function (evt) {
+        SDK.pause();
+    })
+    document.getElementById("play").addEventListener("click", function (evt) {
+        SDK.play();
+    })
+
+    document.getElementById("cccc").addEventListener("click", function (evt) {
+        evt.preventDefault();
+        SDK.destroyVideo()
+    });
+    SDK.on('startRegister',function(){
+        //handler.handleEvent("onStartRegister",SDK.getFileHash());
+    })
+    SDK.on('registerSuccess',function(){
+        console.log('registerSuccess')
+        //handler.handleEvent("onRegister",SDK.getFileHash());
+    })
+    SDK.on('pause', function(){
+        //handler.handleEvent("onPause",SDK.getFileHash());
+    })
+    SDK.on('video.playing', function(){
+        //handler.handleEvent("onVideoPlaying",SDK.getFileHash());
+    })
+    SDK.on('video.ended', function(){
+        //handler.handleEvent("onEndVideo",SDK.getFileHash());
+    })
+    SDK.on('error', function(data){
+        // handler.handleError(errorMessage, SDK.error);
+        switch(data.code){
+            case 401:
+            case 402:
+            case 403:
+            case 404:
+            //handleErrorEvent(data.jqXhr, data.textStatus, data.errorMessage);
+                break;
+            case 410:
+                //handler.handleError("cannot fetch data", "410");
+                break;
+        }
+    })
+
+    SDK.on("streamerExpired", function (){
+        handler.handleEvent("onStreamerExpired", SDK.getFileHash());
+    });
+
+    function handleErrorEvent(jqXhr, textStatus, errorMessage) {
+        try {
+            handler.handleError(JSON.parse(jqXhr.responseText).content, jqXhr.status);
+        } catch (error) {
+            if(jqXhr.status == 401) {
+                handler.handleError(JSON.parse(jqXhr.responseText).content, jqXhr.status);
+            } else {
+                consoleLogging && console.error("some thing bad happen :"+error + "code : " + jqXhr.status)
+                handler.handleError("some thing bad happen : "+error, jqXhr.status);
+            }
+        }
+    }
+
+    function playMediaAndRegister(newToken, newHashFile, newQuality) {
+        consoleLogging && console.log("playMediaAndRegister", newToken, newHashFile , newQuality)
+        SDK.playMedia({
+            hash: newHashFile,
+            quality: newQuality,
+            token: newToken
+        })
+    }
+
+    function resetAndNextMedia(coLink, prLink, manifest, token, quality, newHashFile) {
+        consoleLogging && console.log("nextMedia", token, newHashFile , quality)
+        SDK.destroyVideo();
+        SDK.playCustomMedia({
+            hash: newHashFile,
+            quality: quality,
+            token: token,
+            consumeLink: coLink,
+            produceLink: prLink,
+            manifest: manifest
+        })
+    }
+
+    function updateConsumerAndProducerLink (coLink, proLink, refLink) {
+        SDK.updateBufferLinks({
+            produceLink: proLink,
+            consumeLink: coLink,
+            refreshLink: refLink
+        })
+    }
+</script>
+</body>
+</html>
