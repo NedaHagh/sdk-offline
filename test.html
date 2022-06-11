@@ -71,16 +71,18 @@
         handler.handleEvent("onEndVideo",SDK.getFileHash());
     })
     SDK.on('error', function(data){
-        // handler.handleError(errorMessage, SDK.error);
         switch(data.code){
             case 401:
             case 402:
             case 403:
             case 404:
-            handleErrorEvent(data.jqXhr, data.textStatus, data.errorMessage);
+                switch (data.endPoint) {
+                    case 'register':
+                        handler.handleError("incorrect hash", "404");
+                }
                 break;
             case 410:
-                //handler.handleError("cannot fetch data", "410");
+                handler.handleError("cannot fetch data", "410");
                 break;
         }
     })
